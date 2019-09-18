@@ -1,0 +1,239 @@
+---
+title: "Proj1 Lyrics HW"
+author: "Qichao Chen"
+date: "2019/9/16"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r echo=FALSE, message=FALSE,warning=FALSE}
+## library packages
+library(dplyr)
+library(ggplot2)
+library(tm)
+library(wordcloud2)
+library(RColorBrewer)
+library(tidytext)
+library(tidyverse)
+library(syuzhet)
+library(reshape2)
+```
+
+```{r}
+## get the dataframe
+mydata<-read.csv("C:/Users/beca9/OneDrive/Desktop/5243/proj1/doc/dt_lyrics.csv")
+table(mydata$genre)
+```
+
+## General picture: How do people feel when they listen music?
+The Lyrics classifies all songs into 12 categories: *Rock*, *Pop*, *Metal*, *Hip-Hop*, *Country*, *Jazz*, *Not Available*, *Electronic*, *R&B*, *Indie*, *Folk* and *Other*. In order to get a general sense of 12 categories play, a frequency distribution analysis and setiment analysis will be performed in this part. 
+
+### Frequency distribution of the 12 categories
+Among the 12 categories, I'm wondering how the frequencies are distributed. In other words, which category appears with most times and which is the least.
+
+```{r echo=FALSE, echo=FALSE, out.width="80%", fig.align='center'}
+
+  ggplot(mydata, aes(x = reorder(genre, genre, function(x) length(x)))) + 
+    geom_bar() + 
+    coord_flip() +
+    theme(axis.title.y=element_blank())
+```
+
+The ranking shows that *Rock*, *Pop* and *Metal* are top 3 categories of songs which means that these 3 kinds of songs are most popular.
+  
+### Sentiment Analysis 
+By inducting a sentiment analysis using *syuzhet* package, I want to investigate whether emotions vary with the categories. 
+
+```{r warning=FALSE, echo=FALSE, out.width="80%", fig.align='center'}
+data.Rock <- mydata[mydata$genre == "Rock",]
+data.Pop <- mydata[mydata$genre == "Pop",]
+data.Metal <- mydata[mydata$genre == "Metal",]
+data.HH <- mydata[mydata$genre == "Hip-Hop",]
+data.Country <- mydata[mydata$genre == "Country",]
+data.Jazz <- mydata[mydata$genre == "Jazz",]
+data.NA <- mydata[mydata$genre == "Not Available",]
+data.Electronic <- mydata[mydata$genre == "Electronic",]
+data.RB <- mydata[mydata$genre == "R&B",]
+data.Indie <- mydata[mydata$genre == "Indie",]
+data.Folk <- mydata[mydata$genre == "Folk",]
+data.Other <- mydata[mydata$genre == "Other",]
+
+sent.Rock <-get_nrc_sentiment(as.character(data.Rock$stemmedwords))
+sent.Rock.n <- data.frame(topic = "Rock", attitude = rep("negative", sum(as.numeric(sent.Rock[, 9]>=sent.Rock[, 10]))))
+sent.Rock.p <- data.frame(topic = "Rock", attitude = rep("positive", sum(as.numeric(sent.Rock[, 9]<=sent.Rock[, 10]))))
+sent.Rock.np <- rbind(sent.Rock.n, sent.Rock.p)
+
+sent.Pop <-get_nrc_sentiment(as.character(data.Pop$stemmedwords))
+sent.Pop.n <- data.frame(topic = "Pop", attitude = rep("negative", sum(as.numeric(sent.Pop[, 9]>=sent.Pop[, 10]))))
+sent.Pop.p <- data.frame(topic = "Pop", attitude = rep("positive", sum(as.numeric(sent.Pop[, 9]<=sent.Pop[, 10]))))
+sent.Pop.np <- rbind(sent.Pop.n, sent.Pop.p)
+
+sent.Metal <-get_nrc_sentiment(as.character(data.Metal$stemmedwords))
+sent.Metal.n <- data.frame(topic = "Metal", attitude = rep("negative", sum(as.numeric(sent.Metal[, 9]>=sent.Metal[, 10]))))
+sent.Metal.p <- data.frame(topic = "Metal", attitude = rep("positive", sum(as.numeric(sent.Metal[, 9]<=sent.Metal[, 10]))))
+sent.Metal.np <- rbind(sent.Metal.n, sent.Metal.p)
+
+sent.HH <-get_nrc_sentiment(as.character(data.HH$stemmedwords))
+sent.HH.n <- data.frame(topic = "Hip-Hop", attitude = rep("negative", sum(as.numeric(sent.HH[, 9]>=sent.HH[, 10]))))
+sent.HH.p <- data.frame(topic = "Hip-Hop", attitude = rep("positive", sum(as.numeric(sent.HH[, 9]<=sent.HH[, 10]))))
+sent.HH.np <- rbind(sent.HH.n, sent.HH.p)
+
+sent.Country <-get_nrc_sentiment(as.character(data.Country$stemmedwords))
+sent.Country.n <- data.frame(topic = "Country", attitude = rep("negative", sum(as.numeric(sent.Country[, 9]>=sent.Country[, 10]))))
+sent.Country.p <- data.frame(topic = "Country", attitude = rep("positive", sum(as.numeric(sent.Country[, 9]<=sent.Country[, 10]))))
+sent.Country.np <- rbind(sent.Country.n, sent.Country.p)
+
+sent.Jazz <-get_nrc_sentiment(as.character(data.Jazz$stemmedwords))
+sent.Jazz.n <- data.frame(topic = "Jazz", attitude = rep("negative", sum(as.numeric(sent.Jazz[, 9]>=sent.Jazz[, 10]))))
+sent.Jazz.p <- data.frame(topic = "Jazz", attitude = rep("positive", sum(as.numeric(sent.Jazz[, 9]<=sent.Jazz[, 10]))))
+sent.Jazz.np <- rbind(sent.Jazz.n, sent.Jazz.p)
+
+sent.NA <-get_nrc_sentiment(as.character(data.NA$stemmedwords))
+sent.NA.n <- data.frame(topic = "Not Available", attitude = rep("negative", sum(as.numeric(sent.NA[, 9]>=sent.NA[, 10]))))
+sent.NA.p <- data.frame(topic = "Not Available", attitude = rep("positive", sum(as.numeric(sent.NA[, 9]<=sent.NA[, 10]))))
+sent.NA.np <- rbind(sent.NA.n, sent.NA.p)
+
+sent.Electronic <-get_nrc_sentiment(as.character(data.Electronic$stemmedwords))
+sent.Electronic.n <- data.frame(topic = "Electronic", attitude = rep("negative", sum(as.numeric(sent.Electronic[, 9]>=sent.Electronic[, 10]))))
+sent.Electronic.p <- data.frame(topic = "Electronic", attitude = rep("positive", sum(as.numeric(sent.Electronic[, 9]<=sent.Electronic[, 10]))))
+sent.Electronic.np <- rbind(sent.Electronic.n, sent.Electronic.p)
+
+sent.RB <-get_nrc_sentiment(as.character(data.RB$stemmedwords))
+sent.RB.n <- data.frame(topic = "R&B", attitude = rep("negative", sum(as.numeric(sent.RB[, 9]>=sent.RB[, 10]))))
+sent.RB.p <- data.frame(topic = "R&B", attitude = rep("positive", sum(as.numeric(sent.RB[, 9]<=sent.RB[, 10]))))
+sent.RB.np <- rbind(sent.RB.n, sent.RB.p)
+
+sent.Indie <-get_nrc_sentiment(as.character(data.Indie$stemmedwords))
+sent.Indie.n <- data.frame(topic = "Indie", attitude = rep("negative", sum(as.numeric(sent.Indie[, 9]>=sent.Indie[, 10]))))
+sent.Indie.p <- data.frame(topic = "Indie", attitude = rep("positive", sum(as.numeric(sent.Indie[, 9]<=sent.Indie[, 10]))))
+sent.Indie.np <- rbind(sent.Indie.n, sent.Indie.p)
+
+sent.Folk <-get_nrc_sentiment(as.character(data.Folk$stemmedwords))
+sent.Folk.n <- data.frame(topic = "Folk", attitude = rep("negative", sum(as.numeric(sent.Folk[, 9]>=sent.Folk[, 10]))))
+sent.Folk.p <- data.frame(topic = "Folk", attitude = rep("positive", sum(as.numeric(sent.Folk[, 9]<=sent.Folk[, 10]))))
+sent.Folk.np <- rbind(sent.Folk.n, sent.Folk.p)
+
+sent.Other <-get_nrc_sentiment(as.character(data.Other$stemmedwords))
+sent.Other.n <- data.frame(topic = "Other", attitude = rep("negative", sum(as.numeric(sent.Other[, 9]>=sent.Other[, 10]))))
+sent.Other.p <- data.frame(topic = "Other", attitude = rep("positive", sum(as.numeric(sent.Other[, 9]<=sent.Other[, 10]))))
+sent.Other.np <- rbind(sent.Other.n, sent.Other.p)
+
+topic.sentiment <- rbind(sent.Rock.np, sent.Pop.np, sent.Metal.np, sent.HH.np, sent.Country.np, sent.Jazz.np, sent.NA.np, sent.Electronic.np, sent.RB.np, sent.Indie.np, sent.Folk.np, sent.Other.np)
+
+ggplot(topic.sentiment, aes(x = topic)) +
+  geom_bar(aes(fill = factor(attitude)), position = "fill")
+
+```
+
+The percentage barplot suggests that there actually exists a variation in emotion between categories. Notice that *Metal*, *Hip-Hop* and *Rock* have higher negative score than others. Concidering about the frequency distribution, *Metal*, *Hip-Hop* and *Rock* stand at the top 4 categories which complicates that people have more interesting on songs with negative attitude.
+
+##Do people's preferences for music change over time?
+Having obtained a basic knowledge of the emotion of different kinds of songs. Let's take a deeper look into people's preferences for music changed over time. I will explore the emotion trend by decades.
+
+```{r warning=FALSE, echo=FALSE, out.width="80%", fig.align='center'}
+#Year group
+mydata$decade<-ifelse(mydata$year<1980&mydata$year>=1970,"1970s",
+                     ifelse(mydata$year>=1980&mydata$year<1990,"1980s",
+                     ifelse(mydata$year>=1990&mydata$year<2000,"1990s",
+                     ifelse(mydata$year>=2000&mydata$year<2010,"2000s",
+                     ifelse(mydata$year>=2010,"2010s","Else")))))
+
+data.1970s <- mydata[mydata$decade == "1970s",]
+data.1980s <- mydata[mydata$decade == "1980s",]
+data.1990s <- mydata[mydata$decade == "1990s",]
+data.2000s <- mydata[mydata$decade == "2000s",]
+data.2010s <- mydata[mydata$decade == "2010s",]
+
+#1970s
+sent.1970s <-get_nrc_sentiment(as.character(data.1970s$stemmedwords))
+n.1970s.n<-sum(as.numeric(sent.1970s[, 9]>sent.1970s[, 10]))
+n.1970s.p<-sum(as.numeric(sent.1970s[, 9]<sent.1970s[, 10]))
+n.1970s.e<-sum(as.numeric(sent.1970s[, 9]==sent.1970s[, 10]))
+sum.1970s<-sum(n.1970s.n, n.1970s.p, n.1970s.e)
+sent.1970s.n <- data.frame(decade = "1970s", attitude = "negative", 
+                           percentile = n.1970s.n/sum.1970s)
+sent.1970s.p <- data.frame(decade = "1970s", attitude = "positive", 
+                           percentile = n.1970s.p/sum.1970s)
+sent.1970s.e <- data.frame(decade = "1970s", attitude = "neutral", 
+                           percentile = n.1970s.e/sum.1970s)
+sent.1970s.np <- rbind(sent.1970s.n, sent.1970s.p, sent.1970s.e)
+
+#1980s
+sent.1980s <-get_nrc_sentiment(as.character(data.1980s$stemmedwords))
+n.1980s.n<-sum(as.numeric(sent.1980s[, 9]>sent.1980s[, 10]))
+n.1980s.p<-sum(as.numeric(sent.1980s[, 9]<sent.1980s[, 10]))
+n.1980s.e<-sum(as.numeric(sent.1980s[, 9]==sent.1980s[, 10]))
+sum.1980s<-sum(n.1980s.n, n.1980s.p, n.1980s.e)
+sent.1980s.n <- data.frame(decade = "1980s", attitude = "negative", 
+                           percentile = n.1980s.n/sum.1980s)
+sent.1980s.p <- data.frame(decade = "1980s", attitude = "positive", 
+                           percentile = n.1980s.p/sum.1980s)
+sent.1980s.e <- data.frame(decade = "1980s", attitude = "neutral", 
+                           percentile = n.1980s.e/sum.1980s)
+sent.1980s.np <- rbind(sent.1980s.n, sent.1980s.p, sent.1980s.e)
+
+#1990s
+sent.1990s <-get_nrc_sentiment(as.character(data.1990s$stemmedwords))
+n.1990s.n<-sum(as.numeric(sent.1990s[, 9]>sent.1990s[, 10]))
+n.1990s.p<-sum(as.numeric(sent.1990s[, 9]<sent.1990s[, 10]))
+n.1990s.e<-sum(as.numeric(sent.1990s[, 9]==sent.1990s[, 10]))
+sum.1990s<-sum(n.1990s.n, n.1990s.p, n.1990s.e)
+sent.1990s.n <- data.frame(decade = "1990s", attitude = "negative", 
+                           percentile = n.1990s.n/sum.1990s)
+sent.1990s.p <- data.frame(decade = "1990s", attitude = "positive", 
+                           percentile = n.1990s.p/sum.1990s)
+sent.1990s.e <- data.frame(decade = "1990s", attitude = "neutral", 
+                           percentile = n.1990s.e/sum.1990s)
+sent.1990s.np <- rbind(sent.1990s.n, sent.1990s.p, sent.1990s.e)
+
+#2000s
+sent.2000s <-get_nrc_sentiment(as.character(data.2000s$stemmedwords))
+n.2000s.n<-sum(as.numeric(sent.2000s[, 9]>sent.2000s[, 10]))
+n.2000s.p<-sum(as.numeric(sent.2000s[, 9]<sent.2000s[, 10]))
+n.2000s.e<-sum(as.numeric(sent.2000s[, 9]==sent.2000s[, 10]))
+sum.2000s<-sum(n.2000s.n, n.2000s.p, n.2000s.e)
+sent.2000s.n <- data.frame(decade = "2000s", attitude = "negative", 
+                           percentile = n.2000s.n/sum.2000s)
+sent.2000s.p <- data.frame(decade = "2000s", attitude = "positive", 
+                           percentile = n.2000s.p/sum.2000s)
+sent.2000s.e <- data.frame(decade = "2000s", attitude = "neutral", 
+                           percentile = n.2000s.e/sum.2000s)
+sent.2000s.np <- rbind(sent.2000s.n, sent.2000s.p, sent.2000s.e)
+
+#2010s
+sent.2010s <-get_nrc_sentiment(as.character(data.2010s$stemmedwords))
+n.2010s.n<-sum(as.numeric(sent.2010s[, 9]>sent.2010s[, 10]))
+n.2010s.p<-sum(as.numeric(sent.2010s[, 9]<sent.2010s[, 10]))
+n.2010s.e<-sum(as.numeric(sent.2010s[, 9]==sent.2010s[, 10]))
+sum.2010s<-sum(n.2010s.n, n.2010s.p, n.2010s.e)
+sent.2010s.n <- data.frame(decade = "2010s", attitude = "negative", 
+                           percentile = n.2010s.n/sum.2010s)
+sent.2010s.p <- data.frame(decade = "2010s", attitude = "positive", 
+                           percentile = n.2010s.p/sum.2010s)
+sent.2010s.e <- data.frame(decade = "2010s", attitude = "neutral", 
+                           percentile = n.2010s.e/sum.2010s)
+sent.2010s.np <- rbind(sent.2010s.n, sent.2010s.p, sent.2010s.e)
+
+decade.sentiment<-rbind(sent.1970s.np,sent.1980s.np,sent.1990s.np,sent.2000s.np,sent.2010s.np)
+
+ggplot(decade.sentiment, aes(x = decade,y = percentile,group=attitude,color=attitude)) +
+  geom_line()
+
+
+```
+
+We can see, the line of negative songs has increasing trend and the line of positive song has decreasing trend. In other words, people were more likely to listen positive songs than negative songs in 1970s. However, as time goes on, more and more people prefer negative songs.
+
+##Summary
+* *Rock*, *Pop* and *Metal* are top 3 categories of songs that people like to listen. Lyrics of *Rock* and *Metal* have extremely negative attitude which means people prefer to listen negative songs. \
+* In 1970s, people prefered positive songs than negative songs, but as time goes on, the trend has been changed. \
+* Musically and lyrically, so-called negative songs just explore a part of life that is there, and I suspect will always be there. Overall, I don't think that the negative song is totally bad, simply that it covers areas that occur in life and can either suggest a resolution, or simply be a way of saying that this "negative" thing occurred and the feelings can resonate with other people on a specific level. Nowadays people live under more and more pressure. Maybe listening negative songs is a good way to deal with stress.
+
+ 
+
+
